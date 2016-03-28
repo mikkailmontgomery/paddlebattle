@@ -1,0 +1,153 @@
+<html> <!-- manifest="pong.manifest"-->
+<head>
+<!--
+Brief History:
+    I orginially created a pong clone in C++ in High School.  I took up programming as a side hobby after seeing a batch file prank on a runescape forum and made it my own.
+    After remaking pong, it was not enough so I spent around 6-12 Months learning how to 
+    C++ and Windows API Calls to make a 2d game which became "Paddle Battle".  
+    1. Paddle Battle has interprocess communication as sound ran in a separate process.(Music rights granted by author.)  
+    2.  Double buffering.
+    3.  Paddles can move left, right AND up, down.
+    4.  Paddles have hp.
+    5.  Paddles shoot missles, paddles knockback on hit, missles collide with each other
+    ball, are paddles.
+    6.  Player shoots massive damage wave.
+    7.  Computer doubles in size when scored on.
+    8.  Paddles have sheilds(against missles)
+    9.  Paddles,missles,and ball have different skins.
+    10. All features controllable by window menu.
+    11. Background picture changable.
+    12. Multiple Player TCPIP (2v2) was in the works when I lost interest.
+    13. About/credits window displayed on start.(separate launcher process.)
+    Recently for fun and maybe extra cash if I can make this a worthly mobile app I have took up "paddle battle" again.
+
+
+    Work Done:
+    I'm a long way into this project but I thought I would start a log to track my progress and to watch how I learn to code in HTML5/crossplat mobile app.  Logging time etc.
+    I'll try to recap what I've done to this point.  
+    1.  I've modified all the code from the orginial C++ version to work in HTML5 with javascript.  
+    2.  Cleaned up alot of lazy/fast coding.
+    3.  Removed timer loops, game and animations now run in best practice html5 requestanimframe.(5 hours.)
+    4.  Combined many separate missle logic loops into fewer loops.
+    END RECAP
+    5.  Implemented a 4 box touch control system for movement(8 Hours?)
+    6.  4 box system didn't scale or function very well,was spread poorly and not modular.  
+    I created a "joystick circle control"  touchable object.  It functions and scales expectionally.    Had to learn a little crash course calculas/trig theory to create touch detection within a slice of a circle.  (16 hours maybe more)
+    7.  Moved Joystick code from joystick demo file to game html file.  (2 Hours.)
+    8.  July -15-15 Moved alot of ball logic to functions in the ball object.(2Hours.)
+    9.  July-15-15Removed redundant x,y,x2,y2 and rect properties for the ball from the code.(1 hours.)
+    10. left off line 256 replaces x,y,x2,y2 on player object.(10 minutes)
+    7:24PM 7-16-15 - 9:36PM (2hours)
+    11. 7-16-15 9:45pm - Delete old commented out code.(10 Minutes)
+    12. 7-17-15 9:55pm - Plan ability objects.  
+    13. 7-20-15 3 Hours convert bullets to object/other oop convertions.
+    14. 8-7-15 Tried to remember where I left off  - 1hour
+              Moved JS to separate files - 10 Minutes.
+              Got game closer to runing, code broke after oop from 7-20.
+              9pm to noon.
+              v0.1.18
+    15. 8-8-15 More OOP fixes.
+               Created buttons/abilites control - completed for the most part.  8pm-1am.
+    16. 8-9-15 3pm-6pm trying to fix a bug.  When using more then one finger on either the joystick control or the button control, the app would crash completely.  Turned out a loop used to place new touches in an array was coded wrong and would add duplicates to the array that would never be removed, leading to loop to large to process quickly and a very large array.  Fixed now v0.1.56.
+    17. 8-10-15 More OOP work, working on the missles abilites and getting it to fire from the new buttons control.  Missles firing but no boom, or dmg, and bad hardcoded varibles that don't belong to the missle object. v0.1.74 1.5 hours.
+    18.8-11-15 Got missles object to fire.  Started to work on sheild ability object.
+    19. 8-14-15 More oop, not logged.  Added sheild, does not currently block missles.  Gave up on trying to object all code as I can't figure out how to make missles interact as objects properly.  Have moved computer ai to an AI function.  (not missles just movement)  Movement ifs are not less confusing.  Comp movement is little shaky now.  6pm to 9pm. v0.1.99
+    20.  8-14-15 10pm-12pm created pause button NOT AN OOP CONTROL hardcoded.
+    upper right has a functional pause button and pause limited menu.
+    21.  8-16-15 Lost track dunno how much time I put in.  Uncommented missle collide section.  (Bad)hardcoded hum missle abilites to the missle collide section.  Changed pause screen to an HTML form type screen, needs work.  Also need to remove former pause screen.  Added Start html page. - needs lots of work and a way to pass data via javascript.v0.1.120
+
+    abilities - 
+    You can request to "use" an ability.
+    Abilities - missles, blast, sheild, sheild line, extra balls, heatseeking missles, ball impacting missles, stun bomb,
+
+
+-->
+  <meta name="viewport" 
+  content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <!--<meta name="apple-mobile-web-app-capable" content="yes">-->
+    <style>
+      canvas {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        background: transparent;
+      }
+      span {
+        color:yellow;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        z-index: 0;
+      }
+      p {color:yellow;}
+      #controls {
+      z-index: -1;
+      }
+
+      #background {
+        z-index: -2;
+      }
+      #myCanvas{
+        z-index: 0;
+      }
+      #messages {
+        color:yellow;
+        float: left;
+        z-index: 0;
+      }
+      #pausemenu {
+        position: absolute;
+        color:yellow;
+        z-index: 1;
+        top:30%;
+        left:5%;
+        height: 30%;
+        width:90%; 
+        margin:0 auto;
+        background-color: black;
+        border: solid 5px;
+        border-color: #003300;
+        text-align: center;
+      }
+      #mainmenu {
+        position: absolute;
+        color:yellow;
+        z-index: 2;
+        top:0%;
+        left:0%;
+        height: 100%;
+        width: 100%; 
+        margin:0 auto;
+        background-color: black;
+        text-align: center;
+      }
+      
+    </style>
+<script type="text/javascript" src="objects2.js"></script>
+<script type="text/javascript" src="paddlebattle.js"></script>
+</head>
+<body onload='javascript:startgame();'>
+  <!--<button type="button" onclick="startgame();">Start Bounce</button>-->
+  <canvas tabindex='1' id="myCanvas" width="300" height="300">
+  </canvas>
+    <canvas tabindex='2' id="background" width="300" height="300">
+
+  </canvas>
+  <div id='messages'>Version 0.1.4</div>
+  <div id='pausemenu'>
+    <button type='button' style='position:relative;top:35%;width:30%;' onclick="document.getElementById('pausemenu').style.display = 'none';ingame=true;">Start!</button>
+    <br /><br />
+  <button type='button' style='position:relative;top:35%;width:30%;' onclick="document.getElementById('mainmenu').style.display = 'block';">Quit</button>
+  </div>
+  <div id='mainmenu'>
+  <button type='button' style='position:relative;top:35%;width:30%;' onclick="document.getElementById('mainmenu').style.display = 'none';">Start Game!</button>
+  </div>
+  <span id="score"></span>
+      <canvas tabindex='3' id="controls" width="300" height="300">
+
+  </canvas>
+  <!--<a onmousedown="javscript:Hum.abilities[0].clickdown();"><div id="button0" style="top:0px;left:0px"></div></a>
+  <div id="button1"></div></a>
+  <div id="button2"></div></a>-->
+</body>
+</html>

@@ -1,0 +1,1193 @@
+<html>
+<head>
+<script>
+//old code adaption
+var winwidth = window.innerWidth - 20;
+var winheight = window.innerHeight - 20;
+var screentext = "";
+var hptext = "";
+var scoretext = "";
+var idTimer1;//GameProc
+var idTimer2;//PaintProc
+var idTimer3;//WaitThread
+var nTimerDelay = 10;
+var wKey = false;
+var aKey = false;
+var sKey =false;
+var dKey =false;
+var spaceKey =false;
+var pKey = false;
+var LOW = 1;
+var HIGH = 100;
+var Canvas ; //= document.getElementById("myCanvas");
+var ctx ; //= Canvas.getContext('2d');
+    var tnow ;//= new Date();
+    var ticks ;//= now.getTime();
+    //alert(ticks);
+
+function rectangle(top,left,bottom,right){
+  this.top = top;
+  this.left= left;
+  this.bottom= bottom;
+  this.right = right;
+}
+
+function bullet(hitball,hiteachother,myrect,itop,x,y,x2,y2,boomx,boomy,udmove,boom,imageobj){
+this.hitball = hitball;
+this.hiteachother = hiteachother;
+this.myrect = new rectangle(0,0,0,0);
+this.itop = itop;
+this.x = 0;
+this.y = 0;
+this.x2 = 0;
+this.y2 = 0;
+this.boomx = boomx;
+this.boomy =boomy;
+this.boomimg = new Image();
+this.boomimg.src = 'boommask.bmp'
+this.udmove = udmove;
+this.boom = boom;
+this.inuse = false;
+this.imageobj = new Image();
+this.imageobj.src = 'compbullitmask.bmp';
+
+}
+
+function player(mode,myrect,blastrect,blastok,blastinuse,direction,x,y,x2,y2,stmove,udmove,sheildpower,itop,frame,bumpsound,sheildsup,freezetime,sheildtime,imageobj){
+this.mode = mode;
+this.myrect = new rectangle(0,0,0,0);
+this.blastrect = new rectangle(0,0,0,0);
+this.blastok =blastok;
+this.blastinuse =blastinuse;
+this.canuseshots = true;
+this.direction = direction;
+this.fired = 0;
+this.hp = 9990;
+this.x = 0;
+this.y = 0;
+this.x2 = 0;
+this.y2 = 0;
+this.score = 0;
+this.stmove = stmove;
+this.udmove = udmove;
+this.sheildpower = sheildpower;
+this.itop = itop;
+this.frame = frame;
+this.blastcount = 10;
+this.frozen = false;
+this.bumpsound = bumpsound;
+this.sheildsup = sheildsup;
+this.freezetime = freezetime;
+this.sheildtime = sheildtime;
+var myshots = new Array();
+for (var i = 0; i < 25; i++){
+    myshots.push(new bullet());}
+this.shots = myshots;
+this.imageobj = new Image();
+}
+
+function ball(myrect,itop,x,y,x2,y2,movex,movey,imageobj){
+  this.myrect = new rectangle(0,0,0,0);
+  this.itop = itop
+  this.x = x;
+  this.y = y;
+  this.x2 = x2;
+  this.y2 = y2;
+  this.movex = movex;
+  this.movey = movey;
+  this.imageobj = new Image();
+}
+
+function myFunction(){
+
+}
+
+function myKeyDown(e){
+  e = e || event;
+  //alert("keydown!");
+  if (e.keyCode == 65){aKey = true;}
+    if (e.keyCode == 83){sKey = true;}
+      if (e.keyCode == 68){dKey = true;}
+        if (e.keyCode == 87){wKey = true;}
+          if (e.keyCode == 32){spaceKey = true;}
+            if (e.keyCode == 80){pKey = true;}
+}
+
+function myKeyUp(e){
+  e = e || event;
+  //alert("keydown!");
+  if (e.keyCode == 65){aKey = false;}
+    if (e.keyCode == 83){sKey = false;}
+      if (e.keyCode == 68){dKey = false;}
+        if (e.keyCode == 87){wKey = false;}
+          if (e.keyCode == 32){spaceKey = false;}
+            if (e.keyCode == 80){pKey = false;}
+}
+function setup(){
+    //   ShowCursor(true);
+     Hum.blastok = true;
+     Hum.blastinuse = false;
+     Comp.frozen = false;
+    Comp.x = (winwidth/2) - 50;
+    Comp.y = 50;
+    Comp.x2 = Comp.x + 80;
+    Comp.y2 = 75;
+    Comp.canuseshots = true;
+    Hum.direction = 0;
+    Comp.direction = 0;
+    Hum.canuseshots = true;
+    Hum.frozen = false;
+    Comp.sheildsup = false;
+    Hum.sheildsup = false;
+    Comp.sheildpower = 100;
+    Hum.sheildpower = 100;
+    for(ii = 0;ii < 25; ii++)
+    {
+    Hum.shots[ii].inuse = false;
+    Hum.shots[ii].boom = false;
+    Comp.shots[ii].itop = 0;
+    Comp.shots[ii].inuse = false;
+    Comp.shots[ii].boom = false;
+    }
+    Comp.bumpsound = true;
+    Hum.bumpsound = true;
+    Hum.x = Comp.x;
+    Hum.y = winheight - 75;
+    Hum.x2 = Comp.x2;
+    Hum.y2 = winheight - 50;
+    //SetCursorPos(Hum.x, Hum.y);
+    sBall.x = winwidth / 2;
+    sBall.y = winheight / 2;
+    sBall.x2 = sBall.x + 25;
+    sBall.y2 = sBall.y + 25;
+    sBall.movex = 0;
+    sBall.movey = -5;
+    Comp.stmove = 5;
+    Hum.stmove = 0;
+    mycount = 0;
+    noofcontact = 0;
+    Comp.imageobj = new Image();
+    Comp.imageobj.src = 'compmask.bmp';
+    Hum.imageobj = new Image();
+    Hum.imageobj.src = 'compmask.bmp';
+    sBall.imageobj = new Image();
+    sBall.imageobj.src = 'ballsmask.bmp';
+
+    //animeoldcount = (new Date()).getTime();
+}
+
+/*
+function intersectRect(r0,r1, r2) {
+  return !(r2.x > r1.x2 || 
+           r2.x2< r1.x || 
+           r2.y > r1.y2 ||
+           r2.y2 < r1.y);
+}
+*/
+//http://stackoverflow.com/questions/2752349/fast-rectangle-to-rectangle-intersection
+function IntersectRect(r0, r1, r2) {
+  return !(r2.left > r1.right || 
+           r2.right < r1.left || 
+           r2.top > r1.bottom ||
+           r2.bottom < r1.top);
+}
+
+function GetRandom(min,max)
+{
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+
+function WaitThread(){
+if (spaceKey == true){
+  clearTimeout(idTimer3);
+//idTimer1 = setInterval(GameProc,20);
+startgame();
+}
+}
+
+function GameProc(){
+     Hum.stmove = 0;
+     Hum.udmove = 0;
+     Comp.stmove = 0;
+     Comp.udmove = 0;
+     closecall = 0;
+     var direction;
+                
+     if(Math.abs(sBall.movey) == sBall.movey && sBall.movey != 0)
+     {
+          sBall.movey = 5;
+     }
+     else
+     {
+          sBall.movey = -5;
+     }
+     hptext = "Computer Health = " + Comp.hp + "\nYour Health = " + Hum.hp + "\nShots Fired = " + Hum.fired + "\nBlasts left = " + Hum.blastcount;
+                
+     if(Comp.hp <= 0 || Comp.hp > 100000)
+     {
+          clearTimeout(idTimer1);
+          screentext = "You Win";
+          return;
+     }
+                
+     if(Hum.hp <= 0 || Hum.hp > 100000)
+     {
+          clearTimeout(idTimer1);
+          screentext = "Computer Wins";
+          return;
+     }
+     //############################### Scoreing code starts ####################           
+     if(sBall.y < Comp.y - 200)
+     {
+          Hum.score += 1;
+          ctx.font="20px Georgia";          
+          scoretext = "Paddle battle - Computer score = " + Comp.score + " Your score = " + Hum.score;
+          setup();
+          MyPaintProc();
+          if(Hum.score > 0 )
+          {
+                Comp.x2 += (Comp.x2 - Comp.x) * 2;
+                Comp.y2 += (Comp.y2 - Comp.y); 
+          }
+          clearTimeout(idTimer1);
+          if(Hum.score == 20)
+          {
+                screentext = "You Win";
+                return;
+          }
+          screentext = "Press SpaceBar to continue.";
+          clearTimeout(idTimer2);
+          idTimer3 = setInterval(WaitThread,nTimerDelay);
+     }
+                
+     if(sBall.y2 > Hum.y2 + 200)
+     {
+          Comp.score += 1;
+          scoretext = "Paddle battle - Computer score = " + Comp.score + " Your score = " + Hum.score;
+          setup();
+          MyPaintProc();
+          clearTimeout(idTimer1);
+          if(Comp.score == 20)
+          {
+                screentext = "Computer Wins";
+                return;
+          }
+          screentext = "Press SpaceBar to continue.";
+          clearTimeout(idTimer2);
+          idTimer3 = setInterval(WaitThread,nTimerDelay);
+     }
+     //############################### Scoreing code ends ####################
+     
+     var unusedpointer;
+     Comp.myrect.top = Comp.y;
+     Comp.myrect.bottom = Comp.y2;
+     Comp.myrect.left = Comp.x;
+     Comp.myrect.right = Comp.x2;
+     Hum.myrect.top = Hum.y;
+     Hum.myrect.bottom = Hum.y2;
+     Hum.myrect.left = Hum.x;
+     Hum.myrect.right = Hum.x2;
+     sBall.myrect.top = sBall.y;
+     sBall.myrect.bottom = sBall.y2;
+     sBall.myrect.left = sBall.x;
+     sBall.myrect.right = sBall.x2;
+                
+                
+     if (IntersectRect(unusedpointer, Comp.myrect, sBall.myrect)  != false)
+     {
+          noofcontact += 1;
+          if(noofcontact == 20 && mycount < 14)
+          {
+                mycount += 1;
+                noofcontact = 0;
+          }
+/* //Disable until testing in html - maybe later.
+          if(sound == true && Hum.bumpsound == true)
+          {
+                PlaySound("contact", hInst,SND_RESOURCE | SND_ASYNC); //| SND_LOOP);
+                Hum.bumpsound = false;
+                Comp.bumpsound = true;
+          }
+ */               
+          sBall.movey = 5;
+          direction = GetRandom(LOW,HIGH);
+          if(direction < 20 &&  direction > 1 )
+          {
+                sBall.movex = -5;
+          }
+          if(direction < 40 &&  direction > 20)
+          {
+                sBall.movex = 5;
+          }
+          if(direction < 60 &&  direction > 40)
+          {
+                if ((GetRandom(LOW,HIGH)) > 50)
+                {
+                   sBall.movex = 1;
+                }
+                else
+                {
+                    sBall.movex = -1;
+                }
+          }
+          if(direction < 80 &&  direction > 60)
+          {
+                sBall.movex = -10;
+          }
+                if(direction < 100 &&  direction > 80)
+                {
+                               sBall.movex = 10;
+                }
+     }
+                
+                
+     if (IntersectRect(unusedpointer, Hum.myrect, sBall.myrect)  != false)
+     {
+          noofcontact += 1;
+          if(noofcontact == 15 && mycount < 16)
+          {
+                mycount += 1;
+                noofcontact = 0;
+          }
+
+/* //Disable until testing in html - maybe later.          
+          if(sound == true && Comp.bumpsound == true)
+          {
+                PlaySound("contact", hInst,SND_RESOURCE | SND_ASYNC); //| SND_LOOP);
+                Hum.bumpsound = true;
+                Comp.bumpsound = false;
+          }
+*/
+          /*old human collision 
+          sBall.y2 = Hum.y;
+          sBall.y = sBall.y2 - 25;
+          sBall.movey = -5;
+          direction = GetRandom(LOW,HIGH);
+          sBall.movex = Hum.direction;
+          */
+
+         sBall.movey = -5;
+          direction = GetRandom(LOW,HIGH);
+          if(direction < 20 &&  direction > 1 )
+          {
+                sBall.movex = -5;
+          }
+          if(direction < 40 &&  direction > 20)
+          {
+                sBall.movex = 5;
+          }
+          if(direction < 60 &&  direction > 40)
+          {
+                if ((GetRandom(LOW,HIGH)) > 50)
+                {
+                   sBall.movex = 1;
+                }
+                else
+                {
+                    sBall.movex = -1;
+                }
+          }
+          if(direction < 80 &&  direction > 60)
+          {
+                sBall.movex = -10;
+          }
+                if(direction < 100 &&  direction > 80)
+                {
+                               sBall.movex = 10;
+                }
+
+     }
+     if(Hum.blastinuse == true)
+     {
+          Hum.blastrect.top -= 5;
+          Hum.blastrect.bottom -= 5;
+     }
+                
+     if(Hum.blastrect.bottom <= 0)
+     {
+          Hum.blastinuse = false;
+          Hum.blastok = true;
+     }
+                
+     for(ii = 0;ii < 25; ii++)
+     {
+          if(Hum.shots[ii].inuse == true)
+          {
+                Hum.shots[ii].y -= 5;
+                Hum.shots[ii].y2 -= 5;
+          }
+          if(Hum.shots[ii].y < 0)
+          {
+                Hum.shots[ii].inuse = false;
+                Hum.shots[ii].x = 0;
+                Hum.shots[ii].x2 = 0;
+                Hum.shots[ii].y = 0;
+                Hum.shots[ii].y2 = 0;
+          }
+          if(Comp.shots[ii].inuse == true)
+          {
+                /* Comp shots are not heat seeking 6-23-15
+                if(Comp.shots[ii].y > Hum.y2)
+                {
+                     Comp.shots[ii].y -= 10;
+                     Comp.shots[ii].y2 -= 10;
+                     Comp.shots[ii].itop = 20;
+                }
+                */
+                Comp.shots[ii].y += 5;
+                Comp.shots[ii].y2 += 5;
+                
+
+                /* Comp shots are not heat seeking 6-23-15
+                if(Hum.x > Comp.shots[ii].x2)
+                {
+                     Comp.shots[ii].x += 5;
+                     Comp.shots[ii].x2 += 5;
+                }
+                if(Hum.x2 < Comp.shots[ii].x)
+                {
+                     Comp.shots[ii].x -= 5;
+                     Comp.shots[ii].x2 -= 5;
+                }
+                */
+          }
+                
+          if(Comp.shots[ii].y > winheight)
+          {
+                Comp.shots[ii].inuse = false;
+                Comp.shots[ii].x = 0;
+                Comp.shots[ii].x2 = 0;
+                Comp.shots[ii].y = 0;
+                Comp.shots[ii].y2 = 0;
+          }
+     }
+
+                
+
+     if(sBall.x <= 0)
+     {
+          sBall.movex = 5;
+     }
+                
+     if(sBall.x2 >= winwidth)
+     {
+          sBall.movex = -5;
+     }
+                
+     if(Comp.sheildtime + 50 < dwTime && Comp.sheildsup == true)
+     {
+          Comp.sheildpower -= 1;
+          Comp.sheildtime = dwTime;
+     }
+                
+     if(Comp.sheildtime + 200 < dwTime && Comp.sheildsup == false && Comp.sheildpower < 100)
+     {
+          Comp.sheildpower += 1;
+          Comp.sheildtime = dwTime;
+     }
+     
+     /*           
+     if(GetMenuState(GetMenu(hwnd), ID_HUMAN_MISSILE_OFF, MF_BYCOMMAND) != MF_CHECKED && Comp.sheildpower > 85 && Comp.sheildsup == false)
+     {
+          Comp.sheildsup = true;
+          Comp.sheildtime = dwTime;
+     }
+     */
+                
+     if(Comp.sheildpower == 70)
+     {
+          Comp.sheildsup = false;
+     }
+                
+     if(Comp.frozen == true)
+     {
+          if(Comp.freezetime + 150 < (new Date()).getTime())
+          {
+                Comp.frozen = false;
+          }
+          //goto nextmove; 6-13-2015
+     }
+                
+     if(((Comp.x + (( Comp.x2 - Comp.x) / 2)) > (sBall.x + (sBall.x2 - sBall.x))) && (Comp.x - 5) >= 0)
+     {
+          Comp.stmove = -6;
+     }
+                
+     if(((Comp.x + (( Comp.x2 - Comp.x) / 2)) < (sBall.x + (sBall.x2 - sBall.x))) && (Comp.x2 +5 ) <= winwidth)
+     {
+           Comp.stmove = 6;
+     }
+                
+     if(((sBall.x >= Comp.x && sBall.x <= Comp.x2) || (sBall.x2 <= Comp.x2 && sBall.x2 >= Comp.x)) && Comp.y2 <= winheight / 2)
+     {
+           Comp.udmove = 6;            
+     }
+     else
+     {
+           if(Comp.y - 6 > 0)
+           {
+                Comp.udmove = -6;
+           }
+     }
+                
+     if(sBall.y < Comp.y && Comp.y > 0)
+     {
+           Comp.udmove = -6;
+     }
+                
+                
+     if ((Comp.x < Hum.x && Comp.x2  < Hum.x2) || (Comp.x < Hum.x && Comp.x2  < Hum.x2));//(Comp.x < Hum.x && Comp.x2  > Hum.x2))
+     {//1
+          //Disabled for now, what is it? 6-11-15
+          //if(GetMenuState(GetMenu(hwnd), ID_COMP_MISSILE_OFF, MF_BYCOMMAND) == MF_CHECKED || connected == true)
+          //{
+          //      goto noshootingatducks;
+          //}
+          for (ii = 0;ii < 25; ii++)
+          {//2
+                if(Comp.shots[ii].inuse == true)
+                {//3
+                    1;
+                }//3
+                else
+                {//4
+                    if (ii % 2 == 0)
+                    {
+                         Comp.shots[ii].inuse = true;
+                         Comp.shots[ii].x = (Comp.x2 - Comp.x) / 4 - 5 + Comp.x;
+                         Comp.shots[ii].x2 = (Comp.x2 - Comp.x) / 4 + 5 + Comp.x;
+                         Comp.shots[ii].y = Comp.y2;
+                         Comp.shots[ii].y2 = Comp.y2 + 20;
+                    }
+                    else
+                    {
+                         Comp.shots[ii].inuse = true;
+                         Comp.shots[ii].x = (Comp.x2 - Comp.x) / 4 - 5 + Comp.x + 40;
+                         Comp.shots[ii].x2 = (Comp.x2 - Comp.x) / 4 + 5 + Comp.x + 40;
+                         Comp.shots[ii].y = Comp.y2;
+                         Comp.shots[ii].y2 = Comp.y2 + 20;                
+                    }
+                    Comp.shots[ii].itop = 0;
+                    break;
+                }//4 
+          }//2
+     }//1
+     noshootingatducks:
+     1;
+                
+     if(Hum.y - Comp.y2 < 150 && Comp.y > 0)
+     {
+          Comp.udmove = -6;
+     }
+     nextmove:
+     //int closecall = 0;
+     for(ii = 0; ii < 25; ii++)
+     {
+          Hum.shots[ii].myrect.top = Hum.shots[ii].y;
+          Hum.shots[ii].myrect.bottom = Hum.shots[ii].y2;
+          Hum.shots[ii].myrect.left = Hum.shots[ii].x;
+          Hum.shots[ii].myrect.right = Hum.shots[ii].x2;
+          Comp.shots[ii].myrect.top = Comp.shots[ii].y;
+          Comp.shots[ii].myrect.bottom = Comp.shots[ii].y2;
+          Comp.shots[ii].myrect.left = Comp.shots[ii].x;
+          Comp.shots[ii].myrect.right = Comp.shots[ii].x2;
+          sBall.myrect.top = sBall.y;
+          sBall.myrect.bottom = sBall.y2;
+          sBall.myrect.right = sBall.x2;
+          sBall.myrect.left = sBall.x;
+
+          if (IntersectRect(unusedpointer, Comp.myrect, Hum.shots[ii].myrect)  != false && Hum.shots[ii].inuse == true)//(( Comp.y <= Hum.shots[ii].y && Hum.shots[ii].y <= Comp.y2 && ((Hum.shots[ii].x >= Comp.x && Hum.shots[ii].x <= Comp.x2) || (Hum.shots[ii].x2 <= Comp.x2 && Hum.shots[ii].x2 >= Comp.x))))
+          {
+                if(Comp.sheildsup == false)
+                {
+                     //if(Comp.sheildpower > 85 && Comp.sheildsup == false)
+                     //{
+                     //Comp.sheildsup = true;
+                     //Comp.sheildtime = dwTime;
+                     //}
+                     //else
+                     //{
+                     Comp.frozen = true;
+                     Comp.hp -= 10;
+                     Comp.freezetime = dwTime;
+                     Comp.udmove = -102;
+                     //}
+                }
+                if(Comp.udmove + Comp.y < 0)
+                {
+                     Comp.udmove = -102 + Math.abs(Comp.y - 102);
+                }
+                Hum.shots[ii].boom = true;
+                Hum.shots[ii].inuse = false;
+                Hum.shots[ii].boomx = Hum.shots[ii].x;
+                Hum.shots[ii].boomy = Hum.shots[ii].y;
+          }
+                
+          if (IntersectRect(unusedpointer, Hum.myrect, Comp.shots[ii].myrect)  != false && Comp.shots[ii].inuse == true)//(( Comp.y <= Hum.shots[ii].y && Hum.shots[ii].y <= Comp.y2 && ((Hum.shots[ii].x >= Comp.x && Hum.shots[ii].x <= Comp.x2) || (Hum.shots[ii].x2 <= Comp.x2 && Hum.shots[ii].x2 >= Comp.x))))
+          {
+                if(Hum.sheildsup == false)
+                {
+                     Hum.frozen = true;
+                     Hum.hp -= 15;
+                     Hum.freezetime = dwTime;
+                     Hum.udmove = +102;
+                    // SetCursorPos(Hum.x,Hum.y + 102);
+                }
+                if(Hum.udmove + Hum.y2 > winheight)
+                {
+                //     Hum.udmove = winheight - Hum.y2; fix wierd movement?6-23-15
+                }
+                Comp.shots[ii].boom = true;
+                Comp.shots[ii].inuse = false;
+                Comp.shots[ii].boomx = Comp.shots[ii].x;
+                Comp.shots[ii].boomy = Comp.shots[ii].y;
+          }
+
+          //not going to let the missles effect the ball, for now. 6-11-2015
+          /*
+          if(GetMenuState(GetMenu(hwnd), ID_MISSILES_EFFECT_BALL_OFF, MF_BYCOMMAND) != MF_CHECKED && IntersectRect(&unusedpointer, &sBall.myrect, &Comp.shots[ii].myrect)  != 0 && Comp.shots[ii].inuse == true)
+          {
+                if(Math.abs(sBall.movey) == sBall.movey && sBall.movey != 0)
+                {
+                     sBall.movey = 3;
+                }
+                else
+                {
+                     sBall.movey = 3;
+                }
+                if(Comp.x > Hum.x  && connected == false)
+                {
+                     Comp.direction = -10;
+                }
+                else
+                {
+                     if(connected == false)
+                     {
+                          Comp.direction = 10;
+                     }
+                }
+                sBall.movex = Comp.direction;
+                Comp.shots[ii].boom = true;
+                Comp.shots[ii].inuse = false;
+                Comp.shots[ii].boomx = Comp.shots[ii].x;
+                Comp.shots[ii].boomy = Comp.shots[ii].y;
+          }
+           */
+
+          if(IntersectRect(unusedpointer, Comp.shots[ii].myrect, Hum.blastrect) && Hum.blastinuse == true)
+          {
+                Comp.shots[ii].boom = true;
+                Comp.shots[ii].inuse = false;
+                Comp.shots[ii].boomx = Comp.shots[ii].x;
+                Comp.shots[ii].boomy = Comp.shots[ii].y;
+          }
+                
+          if(IntersectRect(unusedpointer, sBall.myrect, Hum.blastrect) && Hum.blastinuse == true)
+          {
+                if(Math.abs(sBall.movey) == sBall.movey && sBall.movey != 0)
+                {
+                     sBall.movey = -3;
+                }
+                else
+                {
+                     sBall.movey = -3;
+                }
+                sBall.movex = Hum.direction;
+          }
+                
+          if(IntersectRect(unusedpointer, Comp.myrect, Hum.blastrect) && Hum.blastinuse == true)
+          {
+                Comp.frozen = true;
+                Comp.hp -= 1;
+                Comp.freezetime = dwTime;
+                Comp.y = (rand() % (200 - 10 + 1) + 10);
+                Comp.y2 = Comp.y + 25;
+          }
+           
+          //not going to let the missles effect the ball, for now. 6-11-2015
+          /*      
+          if(GetMenuState(GetMenu(hwnd), ID_MISSILES_EFFECT_BALL_OFF, MF_BYCOMMAND) != MF_CHECKED && IntersectRect(&unusedpointer, &sBall.myrect, &Hum.shots[ii].myrect)  != 0 && Hum.shots[ii].inuse == true)
+          {
+                if(Math.abs(sBall.movey) == sBall.movey && sBall.movey != 0)
+                {
+                     sBall.movey = -3;
+                }
+                else
+                {
+                     sBall.movey = -3;
+                }
+                sBall.movex = Hum.direction;
+                Hum.shots[ii].boom = true;
+                Hum.shots[ii].inuse = false;
+                Hum.shots[ii].boomx = Hum.shots[ii].x;
+                Hum.shots[ii].boomy = Hum.shots[ii].y;
+          }
+          */
+     }
+     
+     //disable menu logic - for now missles collide 6-11-2015           
+     //if(GetMenuState(GetMenu(hwnd), ID_MISSILES_COLLIDE_OFF, MF_BYCOMMAND) != MF_CHECKED)
+     //{
+          for(myi = 0;myi < 25;myi++)
+          {
+                for(myi2 = 0;myi2 < 25;myi2++)
+                {
+                     if(IntersectRect(unusedpointer, Comp.shots[myi2].myrect, Hum.shots[myi].myrect) != 0 && Hum.shots[myi].inuse == true  && Comp.shots[myi2].inuse == true)
+                     {
+                          Hum.shots[myi].boom = true;
+                          Hum.shots[myi].inuse = false;
+                          Hum.shots[myi].boomx = Hum.shots[myi].x;
+                          Hum.shots[myi].boomy = Hum.shots[myi].y;
+                          Comp.shots[myi2].boom = true;
+                          Comp.shots[myi2].inuse = false;
+                          Comp.shots[myi2].boomx = Comp.shots[myi2].x;
+                          Comp.shots[myi2].boomy = Comp.shots[myi2].y;
+                     }
+                }
+          }
+     //}
+
+    /*        
+  if (e.keyCode = 65){aKey = true}
+    if (e.keyCode = 83){sKey = true}
+      if (e.keyCode = 68){dKey = true}
+        if (e.keyCode = 87){wKey = true}
+          if (e.keyCode = 32){spaceKey = true}
+            if (e.keyCode = 80){pKey = true}
+*/
+
+
+     if(pKey == true)
+     {
+          clearTimeout(idTimer1);
+          screentext = "You Paused the Game.\nPress SpaceBar to continue.";
+          idTimer2 = setInterval(WaitThread,nTimerDelay);
+          //if (connected == true)
+          //{
+          //senddata.pause = true;
+          //}
+     }
+     //continue converting here with keycodes 6-11-2015           
+     if(Hum.frozen == true)
+     {
+          if(Hum.freezetime + 75 < (new Date()).getTime())
+          {
+                Hum.frozen = false;
+          }
+          //goto skipmove; fix later 6-13-2015
+     }
+                
+     /*   not sure what this was for - 6-12-2015        
+     if(GetKeyState(VK_SHIFT) < 0)
+     {
+          POINT mousexy;
+          GetCursorPos(&mousexy);
+          Hum.x = mousexy.x;
+          Hum.x2 = Hum.x + 80;
+          Hum.y = mousexy.y;
+          Hum.y2 = Hum.y + 25;
+          ShowCursor(false);
+     }
+     */
+
+     if(aKey == true && Hum.x >= 0 )
+     {
+          Hum.stmove = -10;
+     }
+           
+     /*disable blast? for now 6-12-2015           
+     if(GetKeyState(83) < 0 && Hum.blastok == true && Hum.blastcount != 0)
+     {
+          Hum.blastcount -= 1;
+          Hum.blastinuse = true;
+          Hum.blastok = false;
+          Hum.blastrect.left = Hum.x -60;
+          Hum.blastrect.right = Hum.x2 + 60;
+          Hum.blastrect.top = Hum.y - 50;
+          Hum.blastrect.bottom = Hum.y;
+     }
+     */           
+
+     if(Hum.sheildpower == 0)
+     {
+          Hum.sheildsup = false;
+     }
+      /* sheild disable for now - d key 6-12-2015          
+     if(GetKeyState(68) < 0)
+     {
+          Hum.sheildsup = false;
+     }
+      */          
+     if(aKey == true && Hum.x > 0)
+     {
+          Hum.stmove = -10;
+     }
+                
+     if(sKey == true && Hum.y2 <= winheight)
+     {
+          Hum.udmove = 10;
+     }
+          if(dKey == true && Hum.x2 <= winwidth)
+     {
+          Hum.stmove = 10;
+     }
+                
+     if(wKey == true && Hum.y >= Comp.y2 + 100 )
+     {
+          Hum.udmove = -10;
+     }
+                
+     //static DWORD btimeout = dwTime;
+     // Disabled 6-13-2015if((GetMenuState(GetMenu(hwnd), ID_HUMAN_MISSILE_OFF, MF_BYCOMMAND) != MF_CHECKED) && GetKeyState(VK_SPACE) < 0)
+     if (spaceKey == true)
+     {
+          for (ii = 0;ii < 25; ii++)
+          {
+                if(Hum.shots[ii].inuse == true)// && btimeout + 200 < dwTime)
+                {
+                     1;
+                }
+                else
+                {
+                     //btimeout = dwTime;
+                     if(ii % 2 == 0)
+                     {
+                           Hum.shots[ii].inuse = true;
+                           Hum.shots[ii].x = Hum.x + 25;
+                           Hum.shots[ii].x2 = Hum.x + 35;
+                           Hum.shots[ii].y = Hum.y - 25;
+                           Hum.shots[ii].y2 = Hum.y;
+                           Hum.fired += 1;
+                     }
+                     else
+                     {
+                           Hum.shots[ii].inuse = true;
+                           Hum.shots[ii].x = Hum.x + 65;
+                           Hum.shots[ii].x2 = Hum.x + 75;
+                           Hum.shots[ii].y = Hum.y - 25;
+                           Hum.shots[ii].y2 = Hum.y;
+                           Hum.fired += 1;
+                     }
+                     break; 
+                }
+                //goto nofire;
+          }
+
+          nofire:
+          1;
+     }
+     skipmove:
+     Hum.x += Hum.stmove;
+     Hum.x2 += Hum.stmove;
+     //always allow - 6-13-2015
+    // if(GetMenuState(GetMenu(hwnd), MOVEMENT_UP, MF_BYCOMMAND) == MF_CHECKED)
+     //{
+          Hum.y  += Hum.udmove;
+          Hum.y2  += Hum.udmove;
+     //}
+     Comp.x += Comp.stmove;
+     Comp.x2 += Comp.stmove;
+     //always allow - 6-13-2015
+     //if(GetMenuState(GetMenu(hwnd), MOVEMENT_UP, MF_BYCOMMAND) == MF_CHECKED)
+     //{
+          Comp.y += Comp.udmove;
+          Comp.y2 += Comp.udmove;
+     //}
+     if(Math.abs(sBall.movey) == sBall.movey)
+     {
+          sBall.movey += mycount;
+     }
+     else
+     {
+          sBall.movey -= mycount;
+     }
+
+     sBall.x += sBall.movex;
+     sBall.x2 += sBall.movex;
+     sBall.y += sBall.movey;
+     sBall.y2 += sBall.movey;
+     end:
+     1;
+}
+
+function MyPaintProc(){
+   //HWND hwnd = (HWND)hWnd;
+      //while(1==1)
+      //{
+     // Sleep(15);
+                //RECT rc;
+                //RECT hprc;
+                //Not needed - 6-13-2015
+                //GetClientRect(hwnd, &hprc);
+                
+                /* begin translation 6-13-2015
+                rc.top = winheight / 2 - 100;
+                rc.left = winwidth / 2 - 100;
+                rc.bottom = winheight;
+                rc.right = winwidth;
+                PAINTSTRUCT ps;
+                HDC hdc;
+                HDC hdcbmp;
+                HDC hdcbuffer;
+                HBITMAP bm;
+                hdc = GetDC(hwnd);
+                hdcbuffer = CreateCompatibleDC(hdc);
+                bm = CreateCompatibleBitmap(hdc, 600, 450);
+                hdcbmp = CreateCompatibleDC(hdc);
+                SelectObject(hdcbmp, background);
+                SelectObject(hdcbuffer, bm);
+                StretchBlt(hdcbuffer, 0, 0, winwidth, winheight, hdcbmp, 0, 0, bmsize.bmWidth, bmsize.bmHeight, SRCCOPY);
+                DrawText (hdcbuffer, hptext, -1, &hprc, DT_EDITCONTROL | DT_WORDBREAK);
+                */
+                ctx.clearRect(0,0,winwidth,winheight);
+                ctx.font="20px Georgia";          
+                ctx.fillText(hptext,10,40);  
+                /*
+                SelectObject(hdcbmp, Comp.imagemask);
+                SelectObject(hdcbuffer, bm);
+                StretchBlt(hdcbuffer, Comp.x, Comp.y + 35, Comp.x2 - Comp.x, Comp.y - Comp.y2, hdcbmp, 0, 0, 80, 25, SRCAND);
+                SelectObject(hdcbmp, Comp.image);
+                SelectObject(hdcbuffer, bm);
+                StretchBlt(hdcbuffer, Comp.x, Comp.y + 35, Comp.x2 - Comp.x, Comp.y - Comp.y2, hdcbmp, 0, 0, 80, 25, SRCPAINT);
+                */
+                ctx.drawImage(Comp.imageobj, Comp.x, Comp.y);
+
+                // dont draw sheild for now - 6-13-2015
+                //if(Comp.sheildsup == true)
+                //{
+                //SelectObject(hdcbmp, Comp.sheildimagemask);
+                //SelectObject(hdcbuffer, bm);
+                //StretchBlt(hdcbuffer, Comp.x -5 , Comp.y -5, /*120*/Comp.x2 - Comp.x +15, /*50*/ Comp.y2 - Comp.y + 15, hdcbmp, 0, 0, 120, 50, SRCAND);
+                //SelectObject(hdcbmp, Comp.sheildimage);
+                //SelectObject(hdcbuffer, bm);
+                //StretchBlt(hdcbuffer, Comp.x -5 , Comp.y -5, /*120*/Comp.x2 - Comp.x +15, /*50*/ Comp.y2 - Comp.y + 15, hdcbmp, 0, 0, 120, 50, SRCPAINT);
+                
+                //}
+
+                /* Translation draw player 6-13-2015
+                SelectObject(hdcbmp, Hum.imagemask);
+                SelectObject(hdcbuffer, bm);
+                BitBlt(hdcbuffer, Hum.x, Hum.y, 80, 25, hdcbmp, 0, Hum.itop, SRCAND);
+                SelectObject(hdcbmp, Hum.image);
+                SelectObject(hdcbuffer, bm);
+                BitBlt(hdcbuffer, Hum.x, Hum.y, 80, 25, hdcbmp, 0, Hum.itop, SRCPAINT);
+                */
+                ctx.drawImage(Hum.imageobj, Hum.x, Hum.y);
+
+                // - don't draw sheild for now - 6-13-2015
+                /*
+                if(Hum.sheildsup == true)
+                {
+                SelectObject(hdcbmp, Hum.sheildimagemask);
+                SelectObject(hdcbuffer, bm);
+                BitBlt(hdcbuffer, Hum.x - 20, Hum.y - 12, 120, 50, hdcbmp, 0, 0, SRCAND);
+                SelectObject(hdcbmp, Hum.sheildimage);
+                SelectObject(hdcbuffer, bm);
+                BitBlt(hdcbuffer, Hum.x - 20, Hum.y - 12, 120, 50, hdcbmp, 0, 0, SRCPAINT);
+                }
+                */
+
+                /* not animating the missles for now 6-13-2015 */
+                for(ii = 0;ii < 25; ii++)
+                {
+                
+                if(Hum.shots[ii].inuse == true)
+                {
+                ctx.drawImage(Hum.shots[ii].imageobj, 0,20,10,20,Hum.shots[ii].x,Hum.shots[ii].y,10,20);
+               // SelectObject(hdcbmp, Hum.bulletimagemask);
+                //SelectObject(hdcbuffer, bm);
+                //BitBlt(hdcbuffer, Hum.shots[ii].x, Hum.shots[ii].y, Hum.shots[ii].x2, Hum.shots[ii].y2, hdcbmp, 0, 0, SRCAND);
+                //SelectObject(hdcbmp, Hum.bulletimage);
+                //SelectObject(hdcbuffer, bm);
+                //BitBlt(hdcbuffer, Hum.shots[ii].x, Hum.shots[ii].y, Hum.shots[ii].x2, Hum.shots[ii].y2, hdcbmp, 0, 0, SRCPAINT);
+                }
+                if(Hum.shots[ii].boom == true)
+                {
+                  ctx.drawImage(Hum.shots[ii].boomimg,Hum.shots[ii].boomx,Hum.shots[ii].boomy);
+                //SelectObject(hdcbmp, Hum.boomimagemask);
+                //SelectObject(hdcbuffer, bm);
+                //BitBlt(hdcbuffer, Hum.shots[ii].boomx - 10, Hum.shots[ii].boomy - 5, 30, 30, hdcbmp, 0, 0, SRCAND);
+                //SelectObject(hdcbmp, Hum.boomimage);
+                //SelectObject(hdcbuffer, bm);
+                //BitBlt(hdcbuffer, Hum.shots[ii].boomx - 10, Hum.shots[ii].boomy - 5, 30, 30, hdcbmp, 0, 0, SRCPAINT);
+                Hum.shots[ii].boom = false;
+                }
+                
+                if(Comp.shots[ii].inuse == true)
+                {
+
+                ctx.drawImage(Comp.shots[ii].imageobj, 0,0,10,20,Comp.shots[ii].x,Comp.shots[ii].y,10,20);
+                //SelectObject(hdcbmp, Comp.bulletimagemask);
+                //SelectObject(hdcbuffer, bm);
+                
+                //BitBlt(hdcbuffer, Comp.shots[ii].x, Comp.shots[ii].y, /*Comp.shots[ii].x2, Comp.shots[ii].y2,*/20,20, hdcbmp, 0, Comp.shots[ii].itop, SRCAND);
+                
+                //SelectObject(hdcbmp, Comp.bulletimage);
+                //SelectObject(hdcbuffer, bm);
+                //BitBlt(hdcbuffer, Comp.shots[ii].x, Comp.shots[ii].y, /*Comp.shots[ii].x2, Comp.shots[ii].y2,*/20,20, hdcbmp, 0, Comp.shots[ii].itop, SRCPAINT);
+                /*
+                }
+                */
+                if(Comp.shots[ii].boom == true)
+                {
+                ctx.drawImage(Comp.shots[ii].boomimg,Comp.shots[ii].boomx,Comp.shots[ii].boomy);
+                //SelectObject(hdcbmp, Comp.boomimagemask);
+                //SelectObject(hdcbuffer, bm);
+                //BitBlt(hdcbuffer, Comp.shots[ii].boomx - 10, Comp.shots[ii].boomy + 5, 30, 30, hdcbmp, 0, 0, SRCAND);
+                //SelectObject(hdcbmp, Comp.boomimage);
+                //SelectObject(hdcbuffer, bm);
+                //BitBlt(hdcbuffer, Comp.shots[ii].boomx - 10, Comp.shots[ii].boomy + 5, 30, 30, hdcbmp, 0, 0, SRCPAINT);
+                Comp.shots[ii].boom = false;
+                }
+                }
+                /*if(Hum.blastinuse == true)
+                {
+                SelectObject(hdcbmp, Hum.blastmask);
+                SelectObject(hdcbuffer, bm);
+                BitBlt(hdcbuffer, Hum.blastrect.left, Hum.blastrect.top, 200, 50, hdcbmp, 0, 0, SRCAND);
+                SelectObject(hdcbmp, Hum.blast);
+                SelectObject(hdcbuffer, bm);
+                BitBlt(hdcbuffer, Hum.blastrect.left, Hum.blastrect.top, 200, 50, hdcbmp, 0, 0, SRCPAINT);
+                
+                }*/
+                }
+
+                /*tranlate draw ball 6-13-2015
+                SelectObject(hdcbmp, sBall.imagemask);
+                SelectObject(hdcbuffer, bm);
+                BitBlt(hdcbuffer, sBall.x, sBall.y, 25, 25, hdcbmp, 0, sBall.itop, SRCAND);
+                SelectObject(hdcbmp, sBall.image);
+                SelectObject(hdcbuffer, bm);
+                BitBlt(hdcbuffer, sBall.x, sBall.y, 25, 25, hdcbmp, 0, sBall.itop, SRCPAINT);
+                */
+                ctx.drawImage(sBall.imageobj, 0,0,25,25,sBall.x, sBall.y,25,25);
+
+                //DrawText (hdcbuffer, hptext, -1, &hprc, DT_EDITCONTROL | DT_WORDBREAK);
+                //DrawText (hdcbuffer, screentext, -1, &rc, DT_EDITCONTROL | DT_WORDBREAK);         
+                ctx.fillText(screentext,0,0); 
+                ctx.fillText(scoretext,10,50); 
+                if (aKey == true){
+                  ctx.fillText("A True",10,60); 
+                }
+                if (sKey == true){
+                  ctx.fillText("S True",10,70); 
+                }
+                if (dKey == true){
+                  ctx.fillText("D True",10,80); 
+                }
+                if (wKey == true){
+                  ctx.fillText("w True",10,90); 
+                }
+                //SelectObject(hdcbuffer, bm);
+                //BitBlt(hdc, 0, 0, winwidth, winheight, hdcbuffer, 0, 0, SRCCOPY);
+                //DeleteDC(hdcbuffer);
+                //DeleteDC(hdcbmp);
+                //DeleteDC(hdc);
+                //DeleteObject(bm);
+                //EndPaint(hwnd, &ps);
+     // }
+}
+
+
+var Hum = new player;
+Hum.blastcount = 10;
+Hum.hp = 9990;
+
+var Comp = new player;
+Comp.hp = 9990;
+
+var sBall = new ball;
+sBall.itop = 0;
+
+
+
+//end of old code adaption
+//modified code from http://sixrevisions.com/html/bouncing-a-ball-around-with-html5-and-javascript/
+var context;
+var x=100;
+var y=200;
+var r=20;
+var dr=1;
+var dx=5;
+var dy=5;
+var bouncetimer;
+var blinktimer;
+
+function init()
+{
+  myCanvas.height = document.body.clientHeight;
+  myCanvas.width = document.body.clientWidth;
+  context= myCanvas.getContext('2d');
+bouncetimer = setInterval(draw,20);
+  
+}
+
+function blink()
+{
+var x=document.body.clientWidth - 31;
+var y=200;
+var r=20;
+var dr=1;
+var dx=5;
+var dy=5;
+  myCanvas.height = document.body.clientHeight;
+  myCanvas.width = document.body.clientWidth;
+  context= myCanvas.getContext('2d');
+blinktimer = setInterval(draw2,200);
+}
+
+function stopblink()
+{
+clearTimeout(blinktimer);
+}
+
+function startbounce()
+{
+var x=100;
+var y=200;
+var r=20;
+var dx=5;
+var dy=5;
+  myCanvas.height = document.body.clientHeight;
+  myCanvas.width = document.body.clientWidth;
+  context= myCanvas.getContext('2d');
+bouncetimer = setInterval(draw,20);
+}
+
+function stopbounce()
+{
+clearTimeout(bouncetimer);
+}
+
+
+
+
+function startgame(){
+  Canvas = document.getElementById('myCanvas');
+ctx = Canvas.getContext('2d');
+  Canvas.height = document.body.clientHeight;
+  Canvas.width = document.body.clientWidth;
+  Canvas.focus();
+  Canvas.addEventListener("keydown",myKeyDown,false);
+  Canvas.addEventListener("keyup",myKeyUp,false);
+   //Canvas.onkeyup = myKeyUp;
+var mycount = 0;
+var noofcontact = 0;
+var Hum = new player();
+var Comp = new player();
+var sBall = new ball();
+tnow = new Date();
+ticks = tnow.getTime();
+dwTime = ticks;
+setup();
+idTimer1 = setInterval(GameProc,20);
+idTimer2 = setInterval(MyPaintProc,20);
+}
+</script>
+</head>
+<body>
+
+  <button type="button" onclick="startgame();">Start Bounce</button>
+  <canvas tabindex='1' id="myCanvas" width="300" height="300">
+  </canvas>
+</body><!-- Hosted by www.Geocities.ws -->
